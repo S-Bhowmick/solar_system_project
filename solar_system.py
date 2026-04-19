@@ -86,7 +86,7 @@ def draw_filled_circle(xc, yc, r, color):
 
 # Center of solar system
 sun_x = 400
-sun_y = 300
+sun_y = 360
 
 # Orbit sizes
 earth_orbit_radius = 150
@@ -155,6 +155,17 @@ while running:
     # Draw mars
     draw_filled_circle(int(mars_x), int(mars_y), 12, red)
 
+    # Labels
+    sun_label = font.render("Sun", True, white)
+    earth_label = font.render("Earth", True, white)
+    moon_label = font.render("Moon", True, white)
+    mars_label = font.render("Mars", True, white)
+
+    screen.blit(sun_label, (sun_x - 20, sun_y + sun_radius + 10))
+    screen.blit(earth_label, (int(earth_x) - 20, int(earth_y) + 20))
+    screen.blit(moon_label, (int(moon_x) - 15, int(moon_y) - 25))
+    screen.blit(mars_label, (int(mars_x) - 15, int(mars_y) + 20))
+
     # Draw DDA lines
     dda_line(sun_x, sun_y, int(earth_x), int(earth_y), light_gray)
     dda_line(sun_x, sun_y, int(mars_x), int(mars_y), light_gray)
@@ -163,8 +174,8 @@ while running:
     title_text = font.render("2D Animated Solar System", True, white)
     info_text = font.render("Algorithms: DDA Line, Midpoint Circle | Transformations: Translation, Rotation, Scaling", True, white)
 
-    screen.blit(title_text, (240, 20))
-    screen.blit(info_text, (40, 50))
+    screen.blit(title_text, (240, 10))
+    screen.blit(info_text, (35, 40))
 
     pygame.display.update()
     clock.tick(60)
