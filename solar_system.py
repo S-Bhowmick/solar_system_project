@@ -12,6 +12,10 @@ pygame.display.set_caption("Solar System Project")
 black = (0, 0, 0)
 yellow = (255, 255, 0)
 blue = (0, 100, 255)
+white = (255, 255, 255)
+
+def plot_pixel(x, y, color):
+    screen.set_at((int(x), int(y)), color)
 
 running = True
 while running:
@@ -26,6 +30,9 @@ while running:
 
     # Planet
     pygame.draw.circle(screen, blue, (550, 300), 15)
+
+    # One white pixel
+    plot_pixel(100, 100, white)
 
     pygame.display.update()
 
