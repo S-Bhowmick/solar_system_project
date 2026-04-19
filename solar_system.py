@@ -12,10 +12,11 @@ pygame.display.set_caption("Solar System Project")
 
 black = (0, 0, 0)
 yellow = (255, 255, 0)
-blue = (0, 100, 255)
+blue = (0, 120, 255)
 white = (255, 255, 255)
 gray = (120, 120, 120)
 light_gray = (180, 180, 180)
+red = (255, 80, 80)
 
 def plot_pixel(x, y, color):
     if 0 <= int(x) < width and 0 <= int(y) < height:
@@ -36,7 +37,7 @@ def dda_line(x1, y1, x2, y2, color):
     x = x1
     y = y1
 
-    for i in range(int(steps) + 1):
+    for _ in range(int(steps) + 1):
         plot_pixel(round(x), round(y), color)
         x += x_increment
         y += y_increment
@@ -76,10 +77,19 @@ sun_x = 400
 sun_y = 300
 
 earth_orbit_radius = 150
+mars_orbit_radius = 220
 moon_orbit_radius = 35
 
 earth_angle = 0
+mars_angle = 0
 moon_angle = 0
+sun_scale_angle = 0
+
+stars = [
+    (60, 70), (120, 140), (200, 80), (300, 60), (500, 100),
+    (650, 70), (730, 150), (100, 500), (220, 430), (350, 520),
+    (480, 460), (620, 540), (750, 400), (700, 250), (90, 250)
+]
 
 clock = pygame.time.Clock()
 running = True
@@ -92,28 +102,44 @@ while running:
             running = False
 
     earth_angle += 0.02
+    mars_angle += 0.012
     moon_angle += 0.08
+    sun_scale_angle += 0.05
 
     earth_x = sun_x + earth_orbit_radius * math.cos(earth_angle)
     earth_y = sun_y + earth_orbit_radius * math.sin(earth_angle)
 
+    mars_x = sun_x + mars_orbit_radius * math.cos(mars_angle)
+    mars_y = sun_y + mars_orbit_radius * math.sin(mars_angle)
+
     moon_x = earth_x + moon_orbit_radius * math.cos(moon_angle)
     moon_y = earth_y + moon_orbit_radius * math.sin(moon_angle)
 
-    # Orbit path of Earth
+    sun_radius = int(40 + 3 * math.sin(sun_scale_angle))
+
+    # stars
+    for sx, sy in stars:
+        plot_pixel(sx, sy, white)
+
+    # orbits
     midpoint_circle(sun_x, sun_y, earth_orbit_radius, gray)
+    midpoint_circle(sun_x, sun_y, mars_orbit_radius, gray)
 
-    # Sun
-    draw_filled_circle(sun_x, sun_y, 40, yellow)
+    # sun
+    draw_filled_circle(sun_x, sun_y, sun_radius, yellow)
 
-    # Earth
+    # earth
     draw_filled_circle(int(earth_x), int(earth_y), 15, blue)
 
-    # Moon
+    # moon
     draw_filled_circle(int(moon_x), int(moon_y), 6, white)
 
-    # DDA line from Sun to Earth
+    # mars
+    draw_filled_circle(int(mars_x), int(mars_y), 12, red)
+
+    # dda lines
     dda_line(sun_x, sun_y, int(earth_x), int(earth_y), light_gray)
+    dda_line(sun_x, sun_y, int(mars_x), int(mars_y), light_gray)
 
     pygame.display.update()
     clock.tick(60)
