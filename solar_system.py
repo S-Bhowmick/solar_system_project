@@ -5,8 +5,8 @@ import math
 pygame.init()
 
 # Window size
-width = 800
-height = 600
+width = 900
+height = 700
 
 # Create screen
 screen = pygame.display.set_mode((width, height))
@@ -85,22 +85,24 @@ def draw_filled_circle(xc, yc, r, color):
         midpoint_circle(xc, yc, current_r, color)
 
 # Center of solar system
-sun_x = 400
-sun_y = 360
+sun_x = 450
+sun_y = 430
 
 # Orbit sizes
-earth_orbit_radius = 150
-mars_orbit_radius = 220
-moon_orbit_radius = 35
+earth_orbit_radius = 140
+mars_orbit_radius = 185
+saturn_orbit_radius = 220
+moon_orbit_radius = 30
 
 # Angles for animation
 earth_angle = 0
 mars_angle = 0
+saturn_angle = 0
 moon_angle = 0
 sun_scale_angle = 0
 
-comet_x = 50
-comet_y = 120
+comet_x = 80
+comet_y = 180
 comet_speed_x = 2
 comet_speed_y = 1
 
@@ -138,7 +140,8 @@ while running:
     if not paused:
         earth_angle += 0.02 * speed_multiplier
         mars_angle += 0.012 * speed_multiplier
-        moon_angle += 0.08 * speed_multiplier
+        saturn_angle += 0.009 * speed_multiplier
+        moon_angle += 0.05 * speed_multiplier
         sun_scale_angle += 0.05 * speed_multiplier
         
         comet_x += comet_speed_x * speed_multiplier
@@ -146,7 +149,7 @@ while running:
 
         if comet_x > width + 40 or comet_y > height + 40:
             comet_x = -40
-            comet_y = 80
+            comet_y = 180
 
     # Rotation / revolution positions
     earth_x = sun_x + earth_orbit_radius * math.cos(earth_angle)
@@ -154,6 +157,9 @@ while running:
 
     mars_x = sun_x + mars_orbit_radius * math.cos(mars_angle)
     mars_y = sun_y + mars_orbit_radius * math.sin(mars_angle)
+    
+    saturn_x = sun_x + saturn_orbit_radius * math.cos(saturn_angle)
+    saturn_y = sun_y + saturn_orbit_radius * math.sin(saturn_angle)
 
     moon_x = earth_x + moon_orbit_radius * math.cos(moon_angle)
     moon_y = earth_y + moon_orbit_radius * math.sin(moon_angle)
@@ -168,7 +174,8 @@ while running:
     # Draw orbit paths
     midpoint_circle(sun_x, sun_y, earth_orbit_radius, gray)
     midpoint_circle(sun_x, sun_y, mars_orbit_radius, gray)
-
+    midpoint_circle(sun_x, sun_y, saturn_orbit_radius, gray)
+    
     # Draw sun
     draw_filled_circle(sun_x, sun_y, sun_radius, yellow)
 
@@ -180,41 +187,50 @@ while running:
 
     # Draw mars
     draw_filled_circle(int(mars_x), int(mars_y), 12, red)
+    
+    # Draw saturn
+    draw_filled_circle(int(saturn_x), int(saturn_y), 14, (210, 180, 120))
+    
+    # Saturn ring
+    dda_line(int(saturn_x - 20), int(saturn_y), int(saturn_x + 20), int(saturn_y), light_gray)
+    dda_line(int(saturn_x - 18), int(saturn_y + 3), int(saturn_x + 18), int(saturn_y + 3), light_gray)
 
     # Labels
     sun_label = font.render("Sun", True, white)
     earth_label = font.render("Earth", True, white)
     moon_label = font.render("Moon", True, white)
     mars_label = font.render("Mars", True, white)
+    saturn_label = font.render("Saturn", True, white)
     comet_label = font.render("Comet", True, white)
 
-    screen.blit(sun_label, (sun_x - 20, sun_y + sun_radius + 10))
-    screen.blit(earth_label, (int(earth_x) - 20, int(earth_y) + 20))
-    screen.blit(moon_label, (int(moon_x) - 15, int(moon_y) - 25))
-    screen.blit(mars_label, (int(mars_x) - 15, int(mars_y) + 20))
-    screen.blit(comet_label, (int(comet_x) + 10, int(comet_y) - 10))
+    screen.blit(sun_label, (sun_x - 18, sun_y + sun_radius + 8))
+    screen.blit(earth_label, (int(earth_x) - 18, int(earth_y) + 22))
+    screen.blit(moon_label, (int(moon_x) + 8, int(moon_y) - 18))
+    screen.blit(mars_label, (int(mars_x) - 15, int(mars_y) + 18))
+    screen.blit(saturn_label, (int(saturn_x) - 22, int(saturn_y) + 18))
+    screen.blit(comet_label, (int(comet_x) + 12, int(comet_y) - 12))
     
     # Draw DDA lines
     dda_line(sun_x, sun_y, int(earth_x), int(earth_y), light_gray)
     dda_line(sun_x, sun_y, int(mars_x), int(mars_y), light_gray)
+    dda_line(sun_x, sun_y, int(saturn_x), int(saturn_y), light_gray)
     
     # Draw comet head
     draw_filled_circle(int(comet_x), int(comet_y), 5, white)
 
     title_text = font.render("2D Animated Solar System", True, white)
-    info_text = font.render("Algorithms: DDA Line, Midpoint Circle | Transformations: Translation, Rotation, Scaling", True, white)
-    control_text = font.render("UP: Faster  DOWN: Slower  SPACE: Pause/Resume", True, white)
+    info_text = font.render("DDA Line | Midpoint Circle | Translation | Rotation | Scaling", True, white)
+    control_text = font.render("UP Faster | DOWN Slower | SPACE Pause", True, white)
 
     if paused:
-        status_text = font.render(f"Status: Paused   Speed: {speed_multiplier:.1f}x", True, white)
+        status_text = font.render(f"Paused | Speed: {speed_multiplier:.1f}x", True, white)
     else:
-        status_text = font.render(f"Status: Running   Speed: {speed_multiplier:.1f}x", True, white)
+        status_text = font.render(f"Running | Speed: {speed_multiplier:.1f}x", True, white)
 
-    screen.blit(title_text, (240, 10))
-    screen.blit(info_text, (35, 40))
-    screen.blit(control_text, (180, 70))
-    screen.blit(status_text, (300, 100))
-
+    screen.blit(title_text, (300, 10))
+    screen.blit(info_text, (145, 38))
+    screen.blit(control_text, (240, 66))
+    screen.blit(status_text, (340, 92))
     if paused:
         pause_text = font.render("PAUSED", True, white)
         screen.blit(pause_text, (360, 130))
