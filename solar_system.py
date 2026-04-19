@@ -99,6 +99,11 @@ mars_angle = 0
 moon_angle = 0
 sun_scale_angle = 0
 
+comet_x = 50
+comet_y = 120
+comet_speed_x = 2
+comet_speed_y = 1
+
 # Stars
 stars = [
     (60, 70), (120, 140), (200, 80), (300, 60), (500, 100),
@@ -135,6 +140,13 @@ while running:
         mars_angle += 0.012 * speed_multiplier
         moon_angle += 0.08 * speed_multiplier
         sun_scale_angle += 0.05 * speed_multiplier
+        
+        comet_x += comet_speed_x * speed_multiplier
+        comet_y += comet_speed_y * speed_multiplier
+
+        if comet_x > width + 40 or comet_y > height + 40:
+            comet_x = -40
+            comet_y = 80
 
     # Rotation / revolution positions
     earth_x = sun_x + earth_orbit_radius * math.cos(earth_angle)
@@ -174,15 +186,20 @@ while running:
     earth_label = font.render("Earth", True, white)
     moon_label = font.render("Moon", True, white)
     mars_label = font.render("Mars", True, white)
+    comet_label = font.render("Comet", True, white)
 
     screen.blit(sun_label, (sun_x - 20, sun_y + sun_radius + 10))
     screen.blit(earth_label, (int(earth_x) - 20, int(earth_y) + 20))
     screen.blit(moon_label, (int(moon_x) - 15, int(moon_y) - 25))
     screen.blit(mars_label, (int(mars_x) - 15, int(mars_y) + 20))
-
+    screen.blit(comet_label, (int(comet_x) + 10, int(comet_y) - 10))
+    
     # Draw DDA lines
     dda_line(sun_x, sun_y, int(earth_x), int(earth_y), light_gray)
     dda_line(sun_x, sun_y, int(mars_x), int(mars_y), light_gray)
+    
+    # Draw comet head
+    draw_filled_circle(int(comet_x), int(comet_y), 5, white)
 
     title_text = font.render("2D Animated Solar System", True, white)
     info_text = font.render("Algorithms: DDA Line, Midpoint Circle | Transformations: Translation, Rotation, Scaling", True, white)
