@@ -15,12 +15,12 @@ blue = (0, 100, 255)
 white = (255, 255, 255)
 
 def plot_pixel(x, y, color):
-    screen.set_at((int(x), int(y)), color)
+    if 0 <= int(x) < width and 0 <= int(y) < height:
+        screen.set_at((int(x), int(y)), color)
 
 def dda_line(x1, y1, x2, y2, color):
     dx = x2 - x1
     dy = y2 - y1
-
     steps = max(abs(dx), abs(dy))
 
     if steps == 0:
@@ -38,6 +38,33 @@ def dda_line(x1, y1, x2, y2, color):
         x += x_increment
         y += y_increment
 
+def draw_circle_points(xc, yc, x, y, color):
+    plot_pixel(xc + x, yc + y, color)
+    plot_pixel(xc - x, yc + y, color)
+    plot_pixel(xc + x, yc - y, color)
+    plot_pixel(xc - x, yc - y, color)
+    plot_pixel(xc + y, yc + x, color)
+    plot_pixel(xc - y, yc + x, color)
+    plot_pixel(xc + y, yc - x, color)
+    plot_pixel(xc - y, yc - x, color)
+
+def midpoint_circle(xc, yc, r, color):
+    x = 0
+    y = r
+    p = 1 - r
+
+    draw_circle_points(xc, yc, x, y, color)
+
+    while x < y:
+        x += 1
+        if p < 0:
+            p = p + 2 * x + 1
+        else:
+            y -= 1
+            p = p + 2 * x - 2 * y + 1
+
+        draw_circle_points(xc, yc, x, y, color)
+
 running = True
 while running:
     screen.fill(black)
@@ -46,14 +73,12 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    # Sun
-    pygame.draw.circle(screen, yellow, (400, 300), 40)
-
-    # Planet
-    pygame.draw.circle(screen, blue, (550, 300), 15)
-
     # DDA line
     dda_line(100, 100, 300, 200, white)
+
+    # Midpoint circles
+    midpoint_circle(400, 300, 40, yellow)
+    midpoint_circle(550, 300, 15, blue)
 
     pygame.display.update()
 
