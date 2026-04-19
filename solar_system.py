@@ -118,13 +118,16 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    if event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_SPACE:
-            paused = not paused
-        elif event.key == pygame.K_UP:
-            speed_multiplier += 0.2
-        elif event.key == pygame.K_DOWN:
-            speed_multiplier = max(0.2, speed_multiplier - 0.2)
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                paused = not paused
+                print("Paused:", paused)
+
+            elif event.key == pygame.K_UP:
+                speed_multiplier += 0.2
+
+            elif event.key == pygame.K_DOWN:
+                speed_multiplier = max(0.2, speed_multiplier - 0.2)
 
     # Animation speed
     if not paused:
@@ -195,8 +198,11 @@ while running:
     screen.blit(control_text, (180, 70))
     screen.blit(status_text, (300, 100))
 
+    if paused:
+        pause_text = font.render("PAUSED", True, white)
+        screen.blit(pause_text, (360, 130))
+
     pygame.display.update()
     clock.tick(60)
-
 pygame.quit()
 sys.exit()
