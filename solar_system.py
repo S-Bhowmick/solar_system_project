@@ -4,12 +4,15 @@ import math
 
 pygame.init()
 
+# Window size
 width = 800
 height = 600
 
+# Create screen
 screen = pygame.display.set_mode((width, height))
-pygame.display.set_caption("Solar System Project")
+pygame.display.set_caption("2D Animated Solar System")
 
+# Colors
 black = (0, 0, 0)
 yellow = (255, 255, 0)
 blue = (0, 120, 255)
@@ -18,10 +21,15 @@ gray = (120, 120, 120)
 light_gray = (180, 180, 180)
 red = (255, 80, 80)
 
+# Font
+font = pygame.font.SysFont("Arial", 20)
+
+# Plot one pixel
 def plot_pixel(x, y, color):
     if 0 <= int(x) < width and 0 <= int(y) < height:
         screen.set_at((int(x), int(y)), color)
 
+# DDA Line Algorithm
 def dda_line(x1, y1, x2, y2, color):
     dx = x2 - x1
     dy = y2 - y1
@@ -42,6 +50,7 @@ def dda_line(x1, y1, x2, y2, color):
         x += x_increment
         y += y_increment
 
+# Draw 8 symmetric points of circle
 def draw_circle_points(xc, yc, x, y, color):
     plot_pixel(xc + x, yc + y, color)
     plot_pixel(xc - x, yc + y, color)
@@ -52,6 +61,7 @@ def draw_circle_points(xc, yc, x, y, color):
     plot_pixel(xc + y, yc - x, color)
     plot_pixel(xc - y, yc - x, color)
 
+# Midpoint Circle Algorithm
 def midpoint_circle(xc, yc, r, color):
     x = 0
     y = r
@@ -69,22 +79,27 @@ def midpoint_circle(xc, yc, r, color):
 
         draw_circle_points(xc, yc, x, y, color)
 
+# Fill circle by drawing many circle outlines
 def draw_filled_circle(xc, yc, r, color):
     for current_r in range(r, 0, -1):
         midpoint_circle(xc, yc, current_r, color)
 
+# Center of solar system
 sun_x = 400
 sun_y = 300
 
+# Orbit sizes
 earth_orbit_radius = 150
 mars_orbit_radius = 220
 moon_orbit_radius = 35
 
+# Angles for animation
 earth_angle = 0
 mars_angle = 0
 moon_angle = 0
 sun_scale_angle = 0
 
+# Stars
 stars = [
     (60, 70), (120, 140), (200, 80), (300, 60), (500, 100),
     (650, 70), (730, 150), (100, 500), (220, 430), (350, 520),
@@ -101,11 +116,13 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
+    # Animation speed
     earth_angle += 0.02
     mars_angle += 0.012
     moon_angle += 0.08
     sun_scale_angle += 0.05
 
+    # Rotation / revolution positions
     earth_x = sun_x + earth_orbit_radius * math.cos(earth_angle)
     earth_y = sun_y + earth_orbit_radius * math.sin(earth_angle)
 
@@ -115,31 +132,39 @@ while running:
     moon_x = earth_x + moon_orbit_radius * math.cos(moon_angle)
     moon_y = earth_y + moon_orbit_radius * math.sin(moon_angle)
 
+    # Scaling effect for sun
     sun_radius = int(40 + 3 * math.sin(sun_scale_angle))
 
-    # stars
+    # Draw stars
     for sx, sy in stars:
         plot_pixel(sx, sy, white)
 
-    # orbits
+    # Draw orbit paths
     midpoint_circle(sun_x, sun_y, earth_orbit_radius, gray)
     midpoint_circle(sun_x, sun_y, mars_orbit_radius, gray)
 
-    # sun
+    # Draw sun
     draw_filled_circle(sun_x, sun_y, sun_radius, yellow)
 
-    # earth
+    # Draw earth
     draw_filled_circle(int(earth_x), int(earth_y), 15, blue)
 
-    # moon
+    # Draw moon
     draw_filled_circle(int(moon_x), int(moon_y), 6, white)
 
-    # mars
+    # Draw mars
     draw_filled_circle(int(mars_x), int(mars_y), 12, red)
 
-    # dda lines
+    # Draw DDA lines
     dda_line(sun_x, sun_y, int(earth_x), int(earth_y), light_gray)
     dda_line(sun_x, sun_y, int(mars_x), int(mars_y), light_gray)
+
+    # Title text
+    title_text = font.render("2D Animated Solar System", True, white)
+    info_text = font.render("Algorithms: DDA Line, Midpoint Circle | Transformations: Translation, Rotation, Scaling", True, white)
+
+    screen.blit(title_text, (240, 20))
+    screen.blit(info_text, (40, 50))
 
     pygame.display.update()
     clock.tick(60)
