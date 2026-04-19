@@ -1,5 +1,6 @@
 import pygame
 import sys
+import math
 
 pygame.init()
 
@@ -13,6 +14,8 @@ black = (0, 0, 0)
 yellow = (255, 255, 0)
 blue = (0, 100, 255)
 white = (255, 255, 255)
+gray = (120, 120, 120)
+light_gray = (180, 180, 180)
 
 def plot_pixel(x, y, color):
     if 0 <= int(x) < width and 0 <= int(y) < height:
@@ -65,7 +68,22 @@ def midpoint_circle(xc, yc, r, color):
 
         draw_circle_points(xc, yc, x, y, color)
 
+def draw_filled_circle(xc, yc, r, color):
+    for current_r in range(r, 0, -1):
+        midpoint_circle(xc, yc, current_r, color)
+
+sun_x = 400
+sun_y = 300
+
+earth_orbit_radius = 150
+moon_orbit_radius = 35
+
+earth_angle = 0
+moon_angle = 0
+
+clock = pygame.time.Clock()
 running = True
+
 while running:
     screen.fill(black)
 
@@ -73,14 +91,32 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    # DDA line
-    dda_line(100, 100, 300, 200, white)
+    earth_angle += 0.02
+    moon_angle += 0.08
 
-    # Midpoint circles
-    midpoint_circle(400, 300, 40, yellow)
-    midpoint_circle(550, 300, 15, blue)
+    earth_x = sun_x + earth_orbit_radius * math.cos(earth_angle)
+    earth_y = sun_y + earth_orbit_radius * math.sin(earth_angle)
+
+    moon_x = earth_x + moon_orbit_radius * math.cos(moon_angle)
+    moon_y = earth_y + moon_orbit_radius * math.sin(moon_angle)
+
+    # Orbit path of Earth
+    midpoint_circle(sun_x, sun_y, earth_orbit_radius, gray)
+
+    # Sun
+    draw_filled_circle(sun_x, sun_y, 40, yellow)
+
+    # Earth
+    draw_filled_circle(int(earth_x), int(earth_y), 15, blue)
+
+    # Moon
+    draw_filled_circle(int(moon_x), int(moon_y), 6, white)
+
+    # DDA line from Sun to Earth
+    dda_line(sun_x, sun_y, int(earth_x), int(earth_y), light_gray)
 
     pygame.display.update()
+    clock.tick(60)
 
 pygame.quit()
 sys.exit()
