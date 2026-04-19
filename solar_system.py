@@ -108,6 +108,8 @@ stars = [
 
 clock = pygame.time.Clock()
 running = True
+paused = False
+speed_multiplier = 1.0
 
 while running:
     screen.fill(black)
@@ -116,11 +118,20 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
+    if event.type == pygame.KEYDOWN:
+        if event.key == pygame.K_SPACE:
+            paused = not paused
+        elif event.key == pygame.K_UP:
+            speed_multiplier += 0.2
+        elif event.key == pygame.K_DOWN:
+            speed_multiplier = max(0.2, speed_multiplier - 0.2)
+
     # Animation speed
-    earth_angle += 0.02
-    mars_angle += 0.012
-    moon_angle += 0.08
-    sun_scale_angle += 0.05
+    if not paused:
+        earth_angle += 0.02 * speed_multiplier
+        mars_angle += 0.012 * speed_multiplier
+        moon_angle += 0.08 * speed_multiplier
+        sun_scale_angle += 0.05 * speed_multiplier
 
     # Rotation / revolution positions
     earth_x = sun_x + earth_orbit_radius * math.cos(earth_angle)
@@ -170,12 +181,19 @@ while running:
     dda_line(sun_x, sun_y, int(earth_x), int(earth_y), light_gray)
     dda_line(sun_x, sun_y, int(mars_x), int(mars_y), light_gray)
 
-    # Title text
     title_text = font.render("2D Animated Solar System", True, white)
     info_text = font.render("Algorithms: DDA Line, Midpoint Circle | Transformations: Translation, Rotation, Scaling", True, white)
+    control_text = font.render("UP: Faster  DOWN: Slower  SPACE: Pause/Resume", True, white)
+
+    if paused:
+        status_text = font.render(f"Status: Paused   Speed: {speed_multiplier:.1f}x", True, white)
+    else:
+        status_text = font.render(f"Status: Running   Speed: {speed_multiplier:.1f}x", True, white)
 
     screen.blit(title_text, (240, 10))
     screen.blit(info_text, (35, 40))
+    screen.blit(control_text, (180, 70))
+    screen.blit(status_text, (300, 100))
 
     pygame.display.update()
     clock.tick(60)
