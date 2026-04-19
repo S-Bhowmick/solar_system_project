@@ -18,8 +18,10 @@ yellow = (255, 255, 0)
 blue = (0, 120, 255)
 white = (255, 255, 255)
 gray = (120, 120, 120)
-light_gray = (180, 180, 180)
+light_gray = (140, 140, 140)
 red = (255, 80, 80)
+red = (220, 90, 70)
+saturn_color = (210, 190, 130)
 
 # Font
 font = pygame.font.SysFont("Arial", 20)
@@ -110,7 +112,9 @@ comet_speed_y = 1
 stars = [
     (60, 70), (120, 140), (200, 80), (300, 60), (500, 100),
     (650, 70), (730, 150), (100, 500), (220, 430), (350, 520),
-    (480, 460), (620, 540), (750, 400), (700, 250), (90, 250)
+    (480, 460), (620, 540), (750, 400), (700, 250), (90, 250),
+    (50, 300), (150, 600), (260, 200), (410, 140), (560, 620),
+    (680, 320), (820, 180), (850, 500), (300, 650), (520, 260)
 ]
 
 clock = pygame.time.Clock()
@@ -176,6 +180,10 @@ while running:
     midpoint_circle(sun_x, sun_y, mars_orbit_radius, gray)
     midpoint_circle(sun_x, sun_y, saturn_orbit_radius, gray)
     
+    # Sun glow
+    draw_filled_circle(sun_x, sun_y, sun_radius + 12, (80, 60, 0))
+    draw_filled_circle(sun_x, sun_y, sun_radius + 6, (140, 100, 0))
+
     # Draw sun
     draw_filled_circle(sun_x, sun_y, sun_radius, yellow)
 
@@ -192,8 +200,9 @@ while running:
     draw_filled_circle(int(saturn_x), int(saturn_y), 14, (210, 180, 120))
     
     # Saturn ring
-    dda_line(int(saturn_x - 20), int(saturn_y), int(saturn_x + 20), int(saturn_y), light_gray)
-    dda_line(int(saturn_x - 18), int(saturn_y + 3), int(saturn_x + 18), int(saturn_y + 3), light_gray)
+    dda_line(int(saturn_x - 22), int(saturn_y - 2), int(saturn_x + 22), int(saturn_y - 2), light_gray)
+    dda_line(int(saturn_x - 20), int(saturn_y), int(saturn_x + 20), int(saturn_y), white)
+    dda_line(int(saturn_x - 18), int(saturn_y + 2), int(saturn_x + 18), int(saturn_y + 2), light_gray)
 
     # Labels
     sun_label = font.render("Sun", True, white)
@@ -217,6 +226,8 @@ while running:
     
     # Draw comet head
     draw_filled_circle(int(comet_x), int(comet_y), 5, white)
+    draw_filled_circle(int(mars_x), int(mars_y), 12, red)
+    draw_filled_circle(int(saturn_x), int(saturn_y), 14, saturn_color)
 
     title_text = font.render("2D Animated Solar System", True, white)
     info_text = font.render("DDA Line | Midpoint Circle | Translation | Rotation | Scaling", True, white)
@@ -235,6 +246,11 @@ while running:
         pause_text = font.render("PAUSED", True, white)
         screen.blit(pause_text, (360, 130))
 
+    legend1 = font.render("Animated Objects: Earth, Moon, Mars, Saturn, Comet", True, white)
+    legend2 = font.render("Custom Algorithms Used: DDA Line, Midpoint Circle", True, white)
+
+    screen.blit(legend1, (20, height - 55))
+    screen.blit(legend2, (20, height - 30))
     pygame.display.update()
     clock.tick(60)
 pygame.quit()
