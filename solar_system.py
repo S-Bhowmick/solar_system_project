@@ -1,3 +1,9 @@
+# 2D Animated Solar System
+# Computer Graphics Course Project
+# Algorithms Used: DDA Line Algorithm, Midpoint Circle Algorithm
+# Transformations Used: Translation, Rotation, Scaling
+# Developed in Python using Pygame
+
 import pygame
 import sys
 import math
