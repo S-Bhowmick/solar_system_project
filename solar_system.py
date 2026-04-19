@@ -91,17 +91,22 @@ sun_x = 450
 sun_y = 430
 
 # Orbit sizes
+venus_orbit_radius = 100
 earth_orbit_radius = 140
 mars_orbit_radius = 185
-saturn_orbit_radius = 220
+jupiter_orbit_radius = 210
+saturn_orbit_radius = 250
 moon_orbit_radius = 30
 
 # Angles for animation
+venus_angle = 0
 earth_angle = 0
 mars_angle = 0
+jupiter_angle = 0
 saturn_angle = 0
 moon_angle = 0
 sun_scale_angle = 0
+twinkle_angle = 0
 
 comet_x = 80
 comet_y = 180
@@ -142,11 +147,14 @@ while running:
 
     # Animation speed
     if not paused:
+        venus_angle += 0.026 * speed_multiplier
         earth_angle += 0.02 * speed_multiplier
         mars_angle += 0.012 * speed_multiplier
-        saturn_angle += 0.009 * speed_multiplier
-        moon_angle += 0.05 * speed_multiplier
+        jupiter_angle += 0.010 * speed_multiplier
+        saturn_angle += 0.008 * speed_multiplier
+        moon_angle += 0.03 * speed_multiplier
         sun_scale_angle += 0.05 * speed_multiplier
+        twinkle_angle += 0.08 * speed_multiplier
         
         comet_x += comet_speed_x * speed_multiplier
         comet_y += comet_speed_y * speed_multiplier
@@ -156,18 +164,24 @@ while running:
             comet_y = 180
 
     # Rotation / revolution positions
+    venus_x = sun_x + venus_orbit_radius * math.cos(venus_angle)
+    venus_y = sun_y + venus_orbit_radius * math.sin(venus_angle)
+
     earth_x = sun_x + earth_orbit_radius * math.cos(earth_angle)
     earth_y = sun_y + earth_orbit_radius * math.sin(earth_angle)
 
     mars_x = sun_x + mars_orbit_radius * math.cos(mars_angle)
     mars_y = sun_y + mars_orbit_radius * math.sin(mars_angle)
-    
+
+    jupiter_x = sun_x + jupiter_orbit_radius * math.cos(jupiter_angle)
+    jupiter_y = sun_y + jupiter_orbit_radius * math.sin(jupiter_angle)
+
     saturn_x = sun_x + saturn_orbit_radius * math.cos(saturn_angle)
     saturn_y = sun_y + saturn_orbit_radius * math.sin(saturn_angle)
 
     moon_x = earth_x + moon_orbit_radius * math.cos(moon_angle)
     moon_y = earth_y + moon_orbit_radius * math.sin(moon_angle)
-
+    
     # Scaling effect for sun
     sun_radius = int(40 + 3 * math.sin(sun_scale_angle))
 
@@ -179,6 +193,8 @@ while running:
     midpoint_circle(sun_x, sun_y, earth_orbit_radius, gray)
     midpoint_circle(sun_x, sun_y, mars_orbit_radius, gray)
     midpoint_circle(sun_x, sun_y, saturn_orbit_radius, gray)
+    midpoint_circle(sun_x, sun_y, jupiter_orbit_radius, gray)
+    midpoint_circle(sun_x, sun_y, saturn_orbit_radius, gray)
     
     # Sun glow
     draw_filled_circle(sun_x, sun_y, sun_radius + 12, (80, 60, 0))
@@ -186,6 +202,9 @@ while running:
 
     # Draw sun
     draw_filled_circle(sun_x, sun_y, sun_radius, yellow)
+
+    # Draw venus
+    draw_filled_circle(int(venus_x), int(venus_y), 10, (255, 165, 0))
 
     # Draw earth
     draw_filled_circle(int(earth_x), int(earth_y), 15, blue)
@@ -195,7 +214,10 @@ while running:
 
     # Draw mars
     draw_filled_circle(int(mars_x), int(mars_y), 12, red)
-    
+
+    # Draw jupiter
+    draw_filled_circle(int(jupiter_x), int(jupiter_y), 16, (210, 160, 110))
+
     # Draw saturn
     draw_filled_circle(int(saturn_x), int(saturn_y), 14, (210, 180, 120))
     
@@ -206,9 +228,11 @@ while running:
 
     # Labels
     sun_label = font.render("Sun", True, white)
+    venus_label = font.render("Venus", True, white)
     earth_label = font.render("Earth", True, white)
     moon_label = font.render("Moon", True, white)
     mars_label = font.render("Mars", True, white)
+    jupiter_label = font.render("Jupiter", True, white)
     saturn_label = font.render("Saturn", True, white)
     comet_label = font.render("Comet", True, white)
 
@@ -218,10 +242,14 @@ while running:
     screen.blit(mars_label, (int(mars_x) - 15, int(mars_y) + 18))
     screen.blit(saturn_label, (int(saturn_x) - 22, int(saturn_y) + 18))
     screen.blit(comet_label, (int(comet_x) + 12, int(comet_y) - 12))
+    screen.blit(venus_label, (int(venus_x) - 18, int(venus_y) + 15))
+    screen.blit(jupiter_label, (int(jupiter_x) - 20, int(jupiter_y) + 18))
     
     # Draw DDA lines
     dda_line(sun_x, sun_y, int(earth_x), int(earth_y), light_gray)
     dda_line(sun_x, sun_y, int(mars_x), int(mars_y), light_gray)
+    dda_line(sun_x, sun_y, int(saturn_x), int(saturn_y), light_gray)
+    dda_line(sun_x, sun_y, int(jupiter_x), int(jupiter_y), light_gray)
     dda_line(sun_x, sun_y, int(saturn_x), int(saturn_y), light_gray)
     
     # Draw comet head
