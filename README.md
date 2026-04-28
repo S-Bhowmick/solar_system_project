@@ -104,12 +104,6 @@ This project demonstrates a 2D animated solar system, with dynamic motion of pla
 
 ---
 
-## Screenshots
-
-Include a few screenshots or animated images to show how the solar system looks while running. This will enhance the user experience.
-
----
-
 ## Acknowledgements
 
 * **GLUT/OpenGL**: For rendering and window management.
