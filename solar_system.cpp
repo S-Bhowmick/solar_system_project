@@ -1,8 +1,6 @@
-// 2D Animated Solar System by Surjya Bhowmick
-// Computer Graphics Course Project
-// Algorithms Used: DDA Line Algorithm, Midpoint Circle Algorithm
-// Transformations Used: Translation, Rotation, Scaling
-// Developed in C++ using OpenGL + GLUT
+// 2D Animated Solar System using OpenGL Transformations
+// Uses: glTranslatef(), glRotatef(), glScalef()
+// C++ + OpenGL + GLUT
 
 #ifdef _APPLE_
 #include <GLUT/glut.h>
@@ -16,30 +14,27 @@
 
 #define PI 3.14159265f
 
-// globals
+// -------------------- Global Animation Variables --------------------
 float venus_angle   = 0.0f;
 float earth_angle   = 0.0f;
 float mars_angle    = 0.0f;
 float jupiter_angle = 0.0f;
 float saturn_angle  = 0.0f;
 float moon_angle    = 0.0f;
+
 float sun_pulse     = 0.0f;
 float twinkle       = 0.0f;
 
-float comet_x       = -40.0f;
-float comet_y       = 380.0f;
+float comet_x       = -80.0f;
+float comet_y       = 390.0f;
 
 int   paused        = 0;
 float speed         = 1.0f;
 
-// Sun centered so all orbits fit in 900x500
-// Max orbit radius = 210 (Saturn).
-// Safe center: x >= 210, x <= 690, y >= 210, y <= 290
-// Use (450, 250) — center.
+// -------------------- Scene Constants --------------------
 #define SUN_X        450
 #define SUN_Y        250
 
-// Orbit radii — scaled so Saturn fits
 #define R_VENUS       65
 #define R_EARTH       95
 #define R_MARS       128
@@ -47,7 +42,7 @@ float speed         = 1.0f;
 #define R_SATURN     210
 #define R_MOON        22
 
-// Stars — kept inside the 900x500 window
+// -------------------- Star Data --------------------
 int stars[][3] = {
     {30, 480, 2},{80, 465, 3},{140, 472, 2},{200, 488, 3},{260, 460, 2},
     {320, 475, 3},{380, 462, 2},{440, 478, 3},{500, 468, 2},{560, 485, 3},
@@ -66,97 +61,40 @@ int stars[][3] = {
 };
 #define NUM_STARS 70
 
-// forward declarations
-void drawMidpointCircle(int cx, int cy, int r);
-void drawMidpointCircleOutline(int cx, int cy, int r);
-void drawBresenhamLine(int x1, int y1, int x2, int y2);
-void draw_stars(void);
-void draw_comet(void);
-void draw_orbits(void);
-void draw_sun(void);
-void draw_venus(int cx, int cy);
-void draw_earth(int cx, int cy);
-void draw_mars(int cx, int cy);
-void draw_jupiter(int cx, int cy);
-void draw_saturn(int cx, int cy);
-void draw_hud(void);
-void display(void);
-void update_animation(void);
-void keyboard(unsigned char key, int x, int y);
-void specialKeys(int key, int x, int y);
-void myInit(void);
-
-// midpoint circle — filled
-void drawMidpointCircle(int cx, int cy, int r)
+// -------------------- Utility: Draw Filled Circle --------------------
+void drawFilledCircle(float radius)
 {
-    int x = 0, y = r, p = 1 - r;
-    while (x <= y)
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex2f(0.0f, 0.0f);
+    for (int i = 0; i <= 100; i++)
     {
-        glBegin(GL_LINES);
-            glVertex2i(cx - x, cy + y); glVertex2i(cx + x, cy + y);
-            glVertex2i(cx - x, cy - y); glVertex2i(cx + x, cy - y);
-            glVertex2i(cx - y, cy + x); glVertex2i(cx + y, cy + x);
-            glVertex2i(cx - y, cy - x); glVertex2i(cx + y, cy - x);
-        glEnd();
-
-        x++;
-        if (p < 0)
-            p += 2 * x + 1;
-        else
-        {
-            y--;
-            p += 2 * (x - y) + 1;
-        }
-    }
-}
-
-// midpoint circle — outline only
-void drawMidpointCircleOutline(int cx, int cy, int r)
-{
-    int x = 0, y = r, p = 1 - r;
-
-    glBegin(GL_POINTS);
-    while (x <= y)
-    {
-        glVertex2i(cx + x, cy + y); glVertex2i(cx - x, cy + y);
-        glVertex2i(cx + x, cy - y); glVertex2i(cx - x, cy - y);
-        glVertex2i(cx + y, cy + x); glVertex2i(cx - y, cy + x);
-        glVertex2i(cx + y, cy - x); glVertex2i(cx - y, cy - x);
-
-        x++;
-        if (p < 0)
-            p += 2 * x + 1;
-        else
-        {
-            y--;
-            p += 2 * (x - y) + 1;
-        }
+        float angle = 2.0f * PI * i / 100.0f;
+        glVertex2f(cosf(angle) * radius, sinf(angle) * radius);
     }
     glEnd();
 }
 
-// Bresenham line
-void drawBresenhamLine(int x1, int y1, int x2, int y2)
+// -------------------- Utility: Draw Circle Outline --------------------
+void drawCircleOutline(float radius)
 {
-    int dx = abs(x2 - x1), dy = abs(y2 - y1);
-    int sx = (x1 < x2) ? 1 : -1;
-    int sy = (y1 < y2) ? 1 : -1;
-    int err = dx - dy;
-
-    glBegin(GL_POINTS);
-    while (1)
+    glBegin(GL_LINE_LOOP);
+    for (int i = 0; i < 100; i++)
     {
-        glVertex2i(x1, y1);
-        if (x1 == x2 && y1 == y2) break;
-
-        int e2 = 2 * err;
-        if (e2 > -dy) { err -= dy; x1 += sx; }
-        if (e2 <  dx) { err += dx; y1 += sy; }
+        float angle = 2.0f * PI * i / 100.0f;
+        glVertex2f(cosf(angle) * radius, sinf(angle) * radius);
     }
     glEnd();
 }
 
-// init
+// -------------------- Text Drawing --------------------
+void drawText(float x, float y, void *font, const char *str)
+{
+    glRasterPos2f(x, y);
+    for (const char *c = str; *c != '\0'; c++)
+        glutBitmapCharacter(font, *c);
+}
+
+// -------------------- Initialization --------------------
 void myInit(void)
 {
     glClearColor(0.0f, 0.0f, 0.05f, 1.0f);
@@ -167,223 +105,324 @@ void myInit(void)
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-
-    glPointSize(1.0f);
 }
 
-// stars
+// -------------------- Stars --------------------
 void draw_stars(void)
 {
     for (int i = 0; i < NUM_STARS; i++)
     {
         float bright = 0.65f + 0.35f * sinf(twinkle + stars[i][0] * 0.09f);
+        float scale  = 0.8f + 0.25f * sinf(twinkle + stars[i][1] * 0.07f);
+
+        glPushMatrix();
+        glTranslatef((float)stars[i][0], (float)stars[i][1], 0.0f);
+        glScalef(scale, scale, 1.0f);
+
         glColor3f(bright, bright, bright);
         glPointSize((float)stars[i][2]);
 
         glBegin(GL_POINTS);
-            glVertex2i(stars[i][0], stars[i][1]);
+            glVertex2f(0.0f, 0.0f);
         glEnd();
+
+        glPopMatrix();
     }
     glPointSize(1.0f);
 }
 
-// comet
+// -------------------- Comet --------------------
 void draw_comet(void)
 {
+    glPushMatrix();
+    glTranslatef(comet_x, comet_y, 0.0f);
+
     for (int i = 1; i < 9; i++)
     {
         float a = 1.0f - i / 9.0f;
         glColor3f(a * 0.8f, a * 0.8f, a);
-        drawBresenhamLine(
-            (int)comet_x,           (int)comet_y,
-            (int)(comet_x - i * 8), (int)(comet_y + i * 3)
-        );
+
+        glBegin(GL_LINES);
+            glVertex2f(0.0f, 0.0f);
+            glVertex2f(-i * 8.0f, i * 3.0f);
+        glEnd();
     }
 
     glColor3f(1.0f, 1.0f, 1.0f);
-    drawMidpointCircle((int)comet_x, (int)comet_y, 4);
+    drawFilledCircle(4.0f);
+
+    glPopMatrix();
 }
 
-// orbit rings
+// -------------------- Orbit Rings --------------------
 void draw_orbits(void)
 {
-    glColor3f(0.55f, 0.55f, 0.60f);
+    glPushMatrix();
+    glTranslatef(SUN_X, SUN_Y, 0.0f);
 
-    for (int r = R_VENUS - 1; r <= R_VENUS + 1; r++)     drawMidpointCircleOutline(SUN_X, SUN_Y, r);
-    for (int r = R_EARTH - 1; r <= R_EARTH + 1; r++)     drawMidpointCircleOutline(SUN_X, SUN_Y, r);
-    for (int r = R_MARS - 1; r <= R_MARS + 1; r++)       drawMidpointCircleOutline(SUN_X, SUN_Y, r);
-    for (int r = R_JUPITER - 1; r <= R_JUPITER + 1; r++) drawMidpointCircleOutline(SUN_X, SUN_Y, r);
-    for (int r = R_SATURN - 1; r <= R_SATURN + 1; r++)   drawMidpointCircleOutline(SUN_X, SUN_Y, r);
+    glColor3f(0.55f, 0.55f, 0.60f);
+    drawCircleOutline(R_VENUS);
+    drawCircleOutline(R_EARTH);
+    drawCircleOutline(R_MARS);
+    drawCircleOutline(R_JUPITER);
+    drawCircleOutline(R_SATURN);
+
+    glPopMatrix();
 }
 
-// sun
+// -------------------- Sun --------------------
 void draw_sun(void)
 {
-    int sr = (int)(28.0f + 3.0f * sinf(sun_pulse));
+    float pulse_scale = 1.0f + 0.08f * sinf(sun_pulse);
+
+    glPushMatrix();
+    glTranslatef(SUN_X, SUN_Y, 0.0f);
+    glScalef(pulse_scale, pulse_scale, 1.0f);
 
     glColor3f(0.30f, 0.22f, 0.0f);
-    drawMidpointCircle(SUN_X, SUN_Y, sr + 7);
+    drawFilledCircle(35.0f);
 
     glColor3f(0.52f, 0.38f, 0.0f);
-    drawMidpointCircle(SUN_X, SUN_Y, sr + 4);
+    drawFilledCircle(32.0f);
 
     glColor3f(1.0f, 0.90f, 0.0f);
-    drawMidpointCircle(SUN_X, SUN_Y, sr);
+    drawFilledCircle(28.0f);
 
     glColor3f(1.0f, 0.85f, 0.20f);
     for (int i = 0; i < 12; i++)
     {
-        float a = i * 30.0f * PI / 180.0f + sun_pulse * 0.3f;
-        int x1 = SUN_X + (int)(cosf(a) * (sr + 8));
-        int y1 = SUN_Y + (int)(sinf(a) * (sr + 8));
-        int x2 = SUN_X + (int)(cosf(a) * (sr + 17));
-        int y2 = SUN_Y + (int)(sinf(a) * (sr + 17));
-        drawBresenhamLine(x1, y1, x2, y2);
+        glPushMatrix();
+        glRotatef(i * 30.0f + sun_pulse * 8.0f, 0.0f, 0.0f, 1.0f);
+
+        glBegin(GL_LINES);
+            glVertex2f(36.0f, 0.0f);
+            glVertex2f(48.0f, 0.0f);
+        glEnd();
+
+        glPopMatrix();
     }
+
+    glPopMatrix();
 }
 
-// venus
-void draw_venus(int cx, int cy)
+// -------------------- Venus --------------------
+void draw_venus(void)
 {
     glColor3f(0.45f, 0.26f, 0.0f);
-    drawMidpointCircle(cx, cy, 9);
+    drawFilledCircle(9.0f);
 
     glColor3f(1.0f, 0.70f, 0.0f);
-    drawMidpointCircle(cx, cy, 7);
+    drawFilledCircle(7.0f);
 }
 
-// earth
-void draw_earth(int cx, int cy)
+// -------------------- Earth + Moon --------------------
+void draw_earth(void)
 {
     glColor3f(0.05f, 0.22f, 0.45f);
-    drawMidpointCircle(cx, cy, 10);
+    drawFilledCircle(10.0f);
 
     glColor3f(0.18f, 0.52f, 1.0f);
-    drawMidpointCircle(cx, cy, 8);
+    drawFilledCircle(8.0f);
 
+    glPushMatrix();
+    glTranslatef(-2.0f, 2.0f, 0.0f);
     glColor3f(0.15f, 0.60f, 0.15f);
-    drawMidpointCircle(cx - 2, cy + 2, 3);
-    drawMidpointCircle(cx + 3, cy - 2, 2);
+    drawFilledCircle(3.0f);
+    glPopMatrix();
 
-    // moon orbit ring
+    glPushMatrix();
+    glTranslatef(3.0f, -2.0f, 0.0f);
+    glColor3f(0.15f, 0.60f, 0.15f);
+    drawFilledCircle(2.0f);
+    glPopMatrix();
+
     glColor3f(0.40f, 0.40f, 0.45f);
-    drawMidpointCircleOutline(cx, cy, R_MOON);
-    drawMidpointCircleOutline(cx, cy, R_MOON + 1);
+    drawCircleOutline(R_MOON);
 
-    int mx = cx + (int)(R_MOON * cosf(moon_angle));
-    int my = cy + (int)(R_MOON * sinf(moon_angle));
+    glPushMatrix();
+    glRotatef(moon_angle, 0.0f, 0.0f, 1.0f);
+    glTranslatef(R_MOON, 0.0f, 0.0f);
 
     glColor3f(0.45f, 0.45f, 0.45f);
-    drawMidpointCircle(mx, my, 4);
+    drawFilledCircle(4.0f);
 
     glColor3f(0.78f, 0.78f, 0.78f);
-    drawMidpointCircle(mx, my, 2);
+    drawFilledCircle(2.0f);
+
+    glPopMatrix();
 }
 
-// mars
-void draw_mars(int cx, int cy)
+// -------------------- Mars --------------------
+void draw_mars(void)
 {
     glColor3f(0.38f, 0.10f, 0.06f);
-    drawMidpointCircle(cx, cy, 8);
+    drawFilledCircle(8.0f);
 
     glColor3f(0.90f, 0.35f, 0.25f);
-    drawMidpointCircle(cx, cy, 6);
+    drawFilledCircle(6.0f);
 
+    glPushMatrix();
+    glTranslatef(0.0f, 4.0f, 0.0f);
     glColor3f(0.90f, 0.90f, 0.90f);
-    drawMidpointCircle(cx, cy + 4, 2);
+    drawFilledCircle(2.0f);
+    glPopMatrix();
 }
 
-// jupiter
-void draw_jupiter(int cx, int cy)
+// -------------------- Jupiter --------------------
+void draw_jupiter(void)
 {
     glColor3f(0.38f, 0.26f, 0.14f);
-    drawMidpointCircle(cx, cy, 14);
+    drawFilledCircle(14.0f);
 
     glColor3f(0.82f, 0.66f, 0.46f);
-    drawMidpointCircle(cx, cy, 12);
+    drawFilledCircle(12.0f);
 
     glColor3f(0.68f, 0.50f, 0.30f);
-    drawBresenhamLine(cx - 11, cy + 4, cx + 11, cy + 4);
-    drawBresenhamLine(cx - 11, cy + 1, cx + 11, cy + 1);
-    drawBresenhamLine(cx - 11, cy - 2, cx + 11, cy - 2);
-    drawBresenhamLine(cx - 11, cy - 5, cx + 11, cy - 5);
-
-    glColor3f(0.78f, 0.22f, 0.10f);
-    drawMidpointCircle(cx + 4, cy - 2, 3);
-}
-
-// saturn
-void draw_saturn(int cx, int cy)
-{
-    // rings first
-    for (int off = -4; off <= 4; off++)
+    for (float y = 4.0f; y >= -5.0f; y -= 3.0f)
     {
-        if (off >= -1 && off <= 1) continue;
-
-        if (off % 2 == 0)
-            glColor3f(0.70f, 0.62f, 0.38f);
-        else
-            glColor3f(0.55f, 0.48f, 0.26f);
-
-        drawBresenhamLine(cx - 22, cy + off, cx + 22, cy + off);
+        glBegin(GL_LINES);
+            glVertex2f(-11.0f, y);
+            glVertex2f( 11.0f, y);
+        glEnd();
     }
 
-    glColor3f(0.42f, 0.38f, 0.22f);
-    drawMidpointCircle(cx, cy, 12);
-
-    glColor3f(0.86f, 0.80f, 0.58f);
-    drawMidpointCircle(cx, cy, 10);
+    glPushMatrix();
+    glTranslatef(4.0f, -2.0f, 0.0f);
+    glColor3f(0.78f, 0.22f, 0.10f);
+    drawFilledCircle(3.0f);
+    glPopMatrix();
 }
 
-// HUD
+// -------------------- Saturn --------------------
+void draw_saturn(void)
+{
+    glPushMatrix();
+    glRotatef(-20.0f, 0.0f, 0.0f, 1.0f);
+
+    glColor3f(0.70f, 0.62f, 0.38f);
+    glBegin(GL_LINE_LOOP);
+    for (int i = 0; i < 100; i++)
+    {
+        float a = 2.0f * PI * i / 100.0f;
+        glVertex2f(cosf(a) * 24.0f, sinf(a) * 8.0f);
+    }
+    glEnd();
+
+    glColor3f(0.55f, 0.48f, 0.26f);
+    glBegin(GL_LINE_LOOP);
+    for (int i = 0; i < 100; i++)
+    {
+        float a = 2.0f * PI * i / 100.0f;
+        glVertex2f(cosf(a) * 18.0f, sinf(a) * 6.0f);
+    }
+    glEnd();
+
+    glPopMatrix();
+
+    glColor3f(0.42f, 0.38f, 0.22f);
+    drawFilledCircle(12.0f);
+
+    glColor3f(0.86f, 0.80f, 0.58f);
+    drawFilledCircle(10.0f);
+}
+
+// -------------------- HUD --------------------
 void draw_hud(void)
 {
-    const char *c;
-
-    glColor3f(1.0f, 1.0f, 1.0f);
-    glRasterPos2i(10, 488);
-    const char *title = "2D Solar System  |  SPACE=Pause  UP/DOWN=Speed";
-    for (c = title; *c != '\0'; c++)
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *c);
-
     char spdbuf[32];
     sprintf(spdbuf, "Speed: %.1fx", speed);
 
+    glColor3f(1.0f, 1.0f, 1.0f);
+    drawText(10.0f, 488.0f, GLUT_BITMAP_HELVETICA_12,
+             "2D Solar System  |  SPACE=Pause  UP/DOWN=Speed");
+
     glColor3f(1.0f, 0.85f, 0.20f);
-    glRasterPos2i(10, 474);
-    for (c = spdbuf; *c != '\0'; c++)
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *c);
+    drawText(10.0f, 474.0f, GLUT_BITMAP_HELVETICA_12, spdbuf);
 
     if (paused)
     {
         glColor3f(1.0f, 0.25f, 0.25f);
-        glRasterPos2i(385, 488);
-        const char *ps = "-- PAUSED --";
-        for (c = ps; *c != '\0'; c++)
-            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+        drawText(385.0f, 488.0f, GLUT_BITMAP_HELVETICA_18, "-- PAUSED --");
     }
 }
 
-// animation update
+// -------------------- Display --------------------
+void display(void)
+{
+    glClear(GL_COLOR_BUFFER_BIT);
+    glLoadIdentity();
+
+    draw_stars();
+    draw_comet();
+    draw_orbits();
+    draw_sun();
+
+    // Venus
+    glPushMatrix();
+    glTranslatef(SUN_X, SUN_Y, 0.0f);
+    glRotatef(venus_angle, 0.0f, 0.0f, 1.0f);
+    glTranslatef(R_VENUS, 0.0f, 0.0f);
+    draw_venus();
+    glPopMatrix();
+
+    // Earth
+    glPushMatrix();
+    glTranslatef(SUN_X, SUN_Y, 0.0f);
+    glRotatef(earth_angle, 0.0f, 0.0f, 1.0f);
+    glTranslatef(R_EARTH, 0.0f, 0.0f);
+    draw_earth();
+    glPopMatrix();
+
+    // Mars
+    glPushMatrix();
+    glTranslatef(SUN_X, SUN_Y, 0.0f);
+    glRotatef(mars_angle, 0.0f, 0.0f, 1.0f);
+    glTranslatef(R_MARS, 0.0f, 0.0f);
+    draw_mars();
+    glPopMatrix();
+
+    // Jupiter
+    glPushMatrix();
+    glTranslatef(SUN_X, SUN_Y, 0.0f);
+    glRotatef(jupiter_angle, 0.0f, 0.0f, 1.0f);
+    glTranslatef(R_JUPITER, 0.0f, 0.0f);
+    draw_jupiter();
+    glPopMatrix();
+
+    // Saturn
+    glPushMatrix();
+    glTranslatef(SUN_X, SUN_Y, 0.0f);
+    glRotatef(saturn_angle, 0.0f, 0.0f, 1.0f);
+    glTranslatef(R_SATURN, 0.0f, 0.0f);
+    draw_saturn();
+    glPopMatrix();
+
+    draw_hud();
+
+    glutSwapBuffers();
+}
+
+// -------------------- Animation Update --------------------
 void update_animation(void)
 {
     if (!paused)
     {
-        venus_angle   += 0.0035f * speed;
-        earth_angle   += 0.0020f * speed;
-        mars_angle    += 0.0012f * speed;
-        jupiter_angle += 0.0006f * speed;
-        saturn_angle  += 0.0003f * speed;
-        moon_angle    += 0.0120f * speed;
-        sun_pulse     += 0.0080f * speed;
-        twinkle       += 0.0050f * speed;
+        venus_angle   += 0.20f * speed;
+        earth_angle   += 0.12f * speed;
+        mars_angle    += 0.08f * speed;
+        jupiter_angle += 0.04f * speed;
+        saturn_angle  += 0.02f * speed;
+        moon_angle    += 0.70f * speed;
+
+        sun_pulse     += 0.08f * speed;
+        twinkle       += 0.05f * speed;
 
         comet_x += 0.40f * speed;
         comet_y -= 0.06f * speed;
 
         if (comet_x > 950.0f)
         {
-            comet_x = -40.0f;
+            comet_x = -80.0f;
             comet_y = 420.0f + (float)(rand() % 60) - 30.0f;
         }
     }
@@ -391,7 +430,15 @@ void update_animation(void)
     glutPostRedisplay();
 }
 
-// keyboard: normal keys
+// -------------------- Timer --------------------
+void timer(int value)
+{
+    (void)value;
+    update_animation();
+    glutTimerFunc(16, timer, 0);
+}
+
+// -------------------- Keyboard --------------------
 void keyboard(unsigned char key, int x, int y)
 {
     (void)x;
@@ -401,7 +448,6 @@ void keyboard(unsigned char key, int x, int y)
         paused = !paused;
 }
 
-// keyboard: special keys
 void specialKeys(int key, int x, int y)
 {
     (void)x;
@@ -420,53 +466,13 @@ void specialKeys(int key, int x, int y)
     }
 }
 
-// display callback
-void display(void)
-{
-    glClear(GL_COLOR_BUFFER_BIT);
-    glLoadIdentity();
-
-    draw_stars();
-    draw_comet();
-    draw_orbits();
-    draw_sun();
-
-    int vx  = SUN_X + (int)(R_VENUS   * cosf(venus_angle));
-    int vy  = SUN_Y + (int)(R_VENUS   * sinf(venus_angle));
-    int ex  = SUN_X + (int)(R_EARTH   * cosf(earth_angle));
-    int ey  = SUN_Y + (int)(R_EARTH   * sinf(earth_angle));
-    int mrx = SUN_X + (int)(R_MARS    * cosf(mars_angle));
-    int mry = SUN_Y + (int)(R_MARS    * sinf(mars_angle));
-    int jx  = SUN_X + (int)(R_JUPITER * cosf(jupiter_angle));
-    int jy  = SUN_Y + (int)(R_JUPITER * sinf(jupiter_angle));
-    int sx  = SUN_X + (int)(R_SATURN  * cosf(saturn_angle));
-    int sy  = SUN_Y + (int)(R_SATURN  * sinf(saturn_angle));
-
-    draw_venus(vx, vy);
-    draw_earth(ex, ey);
-    draw_mars(mrx, mry);
-    draw_jupiter(jx, jy);
-    draw_saturn(sx, sy);
-
-    draw_hud();
-
-    glutSwapBuffers();
-}
-
-// timer callback
-void timer(int value)
-{
-    (void)value;
-    update_animation();
-    glutTimerFunc(16, timer, 0);
-}
-
+// -------------------- Main --------------------
 int main(int argc, char **argv)
 {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(900, 500);
-    glutCreateWindow("2D Animated Solar System - Surjya Bhowmick");
+    glutCreateWindow("2D Solar System with Transformations");
 
     myInit();
 
